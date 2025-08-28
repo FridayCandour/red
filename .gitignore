@@ -2,7 +2,7 @@
 /node_modules
 
 # Build artifacts
-/dist
+# /built_extension is intentionally not ignored as per user request.
 
 # Logs
 npm-debug.log*
