@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./node_modules/vite/bin/vite.js",
-    "build": "node ./node_modules/vite/bin/vite.js build"
+    "dev": "vite",
+    "build": "vite build",
+    "postbuild": "cp manifest.json built_extension/"
   },
   "dependencies": {
     "react": "^18.2.0",

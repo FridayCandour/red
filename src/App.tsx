@@ -12,6 +12,7 @@ interface SelectedElement {
   fontWeight: string;
   color: string;
   backgroundColor: string;
+  eventListeners?: Record<string, any[]>;
 }
 
 // --- Helper Functions ---
@@ -110,6 +111,9 @@ function App() {
   const [activeTab, setActiveTab] = useState('Inspect');
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const [isInspecting, setIsInspecting] = useState(true);
+  const [isDomTreeHighlighted, setIsDomTreeHighlighted] = useState(false);
+  const [eventListeners, setEventListeners] = useState<Record<string, any[]> | null>(null);
+  const [css, setCss] = useState('');
 
   // Effect to handle messages from the content script
   useEffect(() => {
@@ -120,6 +124,11 @@ function App() {
       if (action === 'element_selected') {
         setSelectedElement(payload);
         setIsInspecting(false);
+        setEventListeners(null); // Reset listeners on new element
+      } else if (action === 'event_listeners_updated') {
+        setEventListeners(payload);
+      } else if (action === 'css_updated') {
+        setCss(payload);
       }
     };
 
@@ -137,6 +146,12 @@ function App() {
       window.parent.postMessage({ action: 'close_panel' }, '*');
   }
 
+  const toggleDomTreeHighlight = () => {
+    const newState = !isDomTreeHighlighted;
+    setIsDomTreeHighlighted(newState);
+    window.parent.postMessage({ action: 'toggle_dom_tree_highlight', payload: newState }, '*');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'Inspect':
@@ -149,6 +164,14 @@ function App() {
                     <p><strong>Tag:</strong> <span className="font-mono bg-black/20 px-2 py-1 rounded">{selectedElement.tag}</span></p>
                     <p><strong>ID:</strong> {selectedElement.id ? <span className="font-mono bg-black/20 px-2 py-1 rounded">{selectedElement.id}</span> : <em>none</em>}</p>
                     <div><strong>Classes:</strong> {selectedElement.classes ? selectedElement.classes.split(' ').filter(c=>c).map(c => <span key={c} className="font-mono bg-black/20 mr-1 mb-1 inline-block px-2 py-1 rounded text-xs">{c}</span>) : <em>none</em>}</div>
+                    <button
+                        onClick={toggleDomTreeHighlight}
+                        className={`w-full text-left p-2 mt-2 rounded transition-colors duration-200 ${
+                            isDomTreeHighlighted ? 'bg-red-500 text-white' : 'bg-gray-600 hover:bg-gray-500'
+                        }`}
+                    >
+                        {isDomTreeHighlighted ? 'Disable' : 'Enable'} DOM Tree Highlight
+                    </button>
                 </InfoSection>
                  <InfoSection title="Size">
                     <div className="flex space-x-6">
@@ -164,6 +187,26 @@ function App() {
                 <InfoSection title="Appearance">
                     <p className="flex items-center"><strong>Color:</strong> <ColorSwatch color={selectedElement.color} /> {selectedElement.color}</p>
                     <p className="flex items-center"><strong>Background:</strong> <ColorSwatch color={selectedElement.backgroundColor} /> {selectedElement.backgroundColor}</p>
+                </InfoSection>
+                <InfoSection title="Event Listeners">
+                    {!eventListeners ? (
+                        <p>Loading...</p>
+                    ) : Object.keys(eventListeners).length === 0 ? (
+                        <p>No event listeners found.</p>
+                    ) : (
+                        Object.entries(eventListeners).map(([event, listeners]) => (
+                            <div key={event}>
+                                <strong>{event}</strong>
+                                <ul className="list-disc pl-5">
+                                    {listeners.map((l, i) => (
+                                        <li key={i} className="font-mono text-xs truncate" title={l.listener}>
+                                            {l.listener.substring(0, 100)}...
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))
+                    )}
                 </InfoSection>
               </div>
             ) : (
@@ -185,6 +228,22 @@ function App() {
         return <div className="p-5 text-gray-300">Typography Explorer Content Placeholder</div>;
       case 'Assets':
         return <div className="p-5 text-gray-300">Asset Browser Content Placeholder</div>;
+      case 'CSS':
+        if (!selectedElement) {
+            return <EmptyState title="No Element Selected" message="Use the 'Inspect' tab to select an element and edit its CSS." />
+        }
+        return (
+            <div className="p-4 h-full flex flex-col">
+                <textarea
+                    className="w-full flex-grow bg-black/20 p-2 rounded font-mono text-sm"
+                    value={css}
+                    onChange={(e) => {
+                        setCss(e.target.value);
+                        window.parent.postMessage({ action: 'update_css', payload: e.target.value }, '*');
+                    }}
+                />
+            </div>
+        )
       default:
         return null;
     }
@@ -201,6 +260,7 @@ function App() {
           <NavItem icon={<Icon>🎨</Icon>} label="Colors" active={activeTab === 'Colors'} onClick={() => setActiveTab('Colors')} />
           <NavItem icon={<Icon>✒️</Icon>} label="Fonts" active={activeTab === 'Fonts'} onClick={() => setActiveTab('Fonts')} />
           <NavItem icon={<Icon>🖼️</Icon>} label="Assets" active={activeTab === 'Assets'} onClick={() => setActiveTab('Assets')} />
+          <NavItem icon={<Icon>🎨</Icon>} label="CSS" active={activeTab === 'CSS'} onClick={() => setActiveTab('CSS')} />
         </nav>
         <main className="flex-1 flex flex-col bg-[#2a2a2a]">
           <header className="h-16 flex items-center justify-between px-5 border-b border-white/10 flex-shrink-0">
