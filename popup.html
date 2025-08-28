@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Red Border Inspector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Inspector Controls</h1>
+  <label class="toggle">
+    <input type="checkbox" id="toggle-inspector">
+    <span class="slider"></span>
+  </label>
+
+  <hr>
+
+  <fieldset id="style-settings">
+    <legend>Highlight Styles</legend>
+    <div>
+      <label for="color-input">Color:</label>
+      <input type="color" id="color-input">
+    </div>
+    <div>
+      <label for="width-input">Width (px):</label>
+      <input type="number" id="width-input" min="1" max="10" value="2">
+    </div>
+    <div>
+      <label for="style-select">Style:</label>
+      <select id="style-select">
+        <option value="solid">Solid</option>
+        <option value="dashed">Dashed</option>
+        <option value="dotted">Dotted</option>
+      </select>
+    </div>
+  </fieldset>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,15 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Red Border Extension",
-  "version": "1.0",
-  "description": "Adds a .red { border: 1px red solid } to all webpages.",
+  "version": "2.0",
+  "description": "An advanced inspector to highlight elements and view their properties.",
   "icons": {
     "128": "icon.svg"
+  },
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "css": ["style.css"]
+      "css": ["inspector.css"],
+      "js": ["inspector.js"]
     }
   ]
 }

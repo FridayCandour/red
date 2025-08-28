@@ -1,0 +1,95 @@
+body {
+  font-family: sans-serif;
+  width: 200px;
+  padding: 10px;
+}
+
+h1 {
+  font-size: 16px;
+  margin-top: 0;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #f44336; /* Red */
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 15px 0;
+}
+
+#style-settings {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+#style-settings legend {
+  font-weight: bold;
+  font-size: 14px;
+  padding: 0;
+  margin-bottom: 10px;
+}
+
+#style-settings div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#style-settings label {
+  font-size: 13px;
+}
+
+#style-settings input, #style-settings select {
+  width: 80px;
+  box-sizing: border-box;
+}
+
+#style-settings input[type="color"] {
+  height: 25px;
+  padding: 2px;
+}
