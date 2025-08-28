@@ -43,6 +43,10 @@ class Highlighter {
     this.label.textContent = `${element.tagName.toLowerCase()} ${element.id ? '#' + element.id : ''} ${element.className ? '.' + element.className.split(' ').join('.') : ''}`;
   }
 
+  contains(element: HTMLElement): boolean {
+    return this.box.contains(element);
+  }
+
   hide() {
     this.box.style.display = 'none';
   }
@@ -76,7 +80,7 @@ function stopInspector() {
 
 function handleMouseOver(e: MouseEvent) {
   const target = e.target as HTMLElement;
-  if (!target || iframe?.contains(target) || highlighter?.box.contains(target)) {
+  if (!target || iframe?.contains(target) || highlighter?.contains(target)) {
     return;
   }
   highlighter?.highlight(target);
@@ -140,7 +144,7 @@ function togglePanel() {
   startInspector(); // Start inspector when panel is first created
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === 'toggle_panel') {
     togglePanel();
     sendResponse({ status: 'done' });
