@@ -11,14 +11,21 @@
     "scripting",
     "activeTab"
   ],
-  "action": {
-    "default_popup": "popup.html"
+  "action": {},
+  "background": {
+    "service_worker": "src/background.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "css": ["inspector.css"],
-      "js": ["inspector.js"]
+      "css": ["assets/global.css"],
+      "js": ["src/content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "src/injected.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

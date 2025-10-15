@@ -12,6 +12,8 @@ export default defineConfig({
         panel: resolve(__dirname, 'index.html'),
         content: resolve(__dirname, 'src/content.ts'),
         background: resolve(__dirname, 'src/background.ts'),
+        global: resolve(__dirname, 'src/global.css'),
+        injected: resolve(__dirname, 'src/injected.js'),
       },
       output: {
         entryFileNames: 'src/[name].js',

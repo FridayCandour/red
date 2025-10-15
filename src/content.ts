@@ -1,6 +1,8 @@
 let iframe: HTMLIFrameElement | null = null;
 let highlighter: Highlighter | null = null;
 let isInspectorActive = false;
+let pinnedElement: HTMLElement | null = null;
+let styleElement: HTMLStyleElement | null = null;
 
 /**
  * Manages the element highlighter overlay.
@@ -141,11 +143,20 @@ function handleMouseClick(e: MouseEvent) {
     backgroundColor: computedStyle.backgroundColor,
   };
 
+  pinnedElement = target;
+
+  (window as any).__PREMIUM_DESIGN_INSPECTOR_SELECTED_ELEMENT__ = target;
+  window.postMessage({ type: 'GET_EVENT_LISTENERS' }, '*');
+
   // Send the element info to the iframe panel
   iframe?.contentWindow?.postMessage({ action: 'element_selected', payload: elementInfo }, '*');
 
   // For now, clicking an element stops the inspector to "pin" it visually
   stopInspector();
+
+  // Send the element's CSS to the panel
+  const cssText = pinnedElement.style.cssText;
+  iframe?.contentWindow?.postMessage({ action: 'css_updated', payload: cssText }, '*');
 }
 
 /**
@@ -184,6 +195,7 @@ function togglePanel() {
   iframe.classList.add('premium-design-inspector-iframe');
 
   document.body.appendChild(iframe);
+  injectScript(chrome.runtime.getURL('src/injected.js'));
   startInspector(); // Start inspector when panel is first created
 }
 
@@ -194,8 +206,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Listen for messages from the iframe
+function toggleDomTreeHighlight(shouldHighlight: boolean) {
+    if (!pinnedElement) return;
+
+    function traverse(element: Element) {
+        if (shouldHighlight) {
+            element.classList.add('red');
+        } else {
+            element.classList.remove('red');
+        }
+
+        for (const child of element.children) {
+            traverse(child);
+        }
+    }
+
+    traverse(pinnedElement);
+}
+
+// Listen for messages from the iframe and the injected script
 window.addEventListener("message", (event) => {
+    // Messages from the iframe panel
     if (event.source !== window && event.data.action) {
         switch(event.data.action) {
             case 'close_panel':
@@ -210,6 +241,19 @@ window.addEventListener("message", (event) => {
             case 'stop_inspector':
                 stopInspector();
                 break;
+            case 'toggle_dom_tree_highlight':
+                toggleDomTreeHighlight(event.data.payload);
+                break;
+            case 'update_css':
+                if (pinnedElement) {
+                    pinnedElement.style.cssText = event.data.payload;
+                }
+                break;
         }
+    }
+
+    // Messages from the injected script
+    if (event.source === window && event.data.type === 'EVENT_LISTENERS_RESULT') {
+        iframe?.contentWindow?.postMessage({ action: 'event_listeners_updated', payload: event.data.eventListeners }, '*');
     }
 }, false);
