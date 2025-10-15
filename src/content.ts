@@ -43,10 +43,6 @@ class Highlighter {
     this.label.textContent = `${element.tagName.toLowerCase()} ${element.id ? '#' + element.id : ''} ${element.className ? '.' + element.className.split(' ').join('.') : ''}`;
   }
 
-  contains(element: HTMLElement): boolean {
-    return this.box.contains(element);
-  }
-
   hide() {
     this.box.style.display = 'none';
   }
@@ -56,6 +52,18 @@ class Highlighter {
   }
 }
 
+/**
+ * Activates the in-page inspector: creates the highlighter if needed and attaches global event listeners.
+ *
+ * Once called (no-op if already active) this sets the internal `isInspectorActive` flag to true, ensures a
+ * Highlighter instance exists (which creates DOM overlay elements), and registers capture-phase `mouseover`
+ * and `click` listeners on `document` to drive hover highlighting and element selection.
+ *
+ * Side effects:
+ * - May create and insert DOM elements via `new Highlighter()`.
+ * - Registers global event listeners that must be removed by `stopInspector()` to avoid continued interception
+ *   of user interactions.
+ */
 function startInspector() {
   if (isInspectorActive) return;
   isInspectorActive = true;
@@ -67,6 +75,13 @@ function startInspector() {
   console.log('Inspector started');
 }
 
+/**
+ * Stops the in-page inspector: disables inspection mode, hides the highlighter, and removes event listeners.
+ *
+ * If the inspector is not active this is a no-op. When active, it sets the internal active flag to false,
+ * hides the highlighter overlay (if present), and removes the document-level `mouseover` and `click`
+ * listeners that were registered in the capture phase.
+ */
 function stopInspector() {
   if (!isInspectorActive) return;
   isInspectorActive = false;
@@ -78,14 +93,28 @@ function stopInspector() {
   console.log('Inspector stopped');
 }
 
+/**
+ * Handles document mouseover events by highlighting the hovered element.
+ *
+ * If the event target is absent, is inside the inspector iframe, or is part of the highlighter overlay itself, no action is taken. Otherwise the highlighter is instructed to highlight the target element.
+ *
+ * @param e - The mouseover event (expected from document-level listener)
+ */
 function handleMouseOver(e: MouseEvent) {
   const target = e.target as HTMLElement;
-  if (!target || iframe?.contains(target) || highlighter?.contains(target)) {
+  if (!target || iframe?.contains(target) || highlighter?.box.contains(target)) {
     return;
   }
   highlighter?.highlight(target);
 }
 
+/**
+ * Handle mouse clicks while the inspector is active: collect the clicked element's metadata, send it to the panel, and stop the inspector.
+ *
+ * Ignores clicks targeting the panel iframe or when the inspector is inactive. Prevents the default action and stops propagation for handled clicks. Gathers the element's tag, id, class list, rounded width/height, and key computed style properties (fontFamily, fontSize, fontWeight, color, backgroundColor), posts a message to the iframe with action `element_selected` and the collected payload, then stops the inspector to "pin" the selection.
+ *
+ * @param e - The MouseEvent triggered by the user's click.
+ */
 function handleMouseClick(e: MouseEvent) {
   if (!isInspectorActive) return;
   const target = e.target as HTMLElement;
@@ -119,6 +148,20 @@ function handleMouseClick(e: MouseEvent) {
   stopInspector();
 }
 
+/**
+ * Toggles the right-side inspector panel: shows/hides it, or creates it if missing.
+ *
+ * When an existing panel iframe is present this toggles its `display` between `block` and `none`
+ * and starts or stops the element inspector accordingly. If no iframe exists, this creates the
+ * panel iframe (loads `index.html` from the extension via `chrome.runtime.getURL`), applies
+ * positioning and sizing styles (fixed, 380px wide, full viewport height), appends it to
+ * document.body, and starts the inspector.
+ *
+ * Side effects:
+ * - Mutates global `iframe`.
+ * - Appends an iframe to the document when creating the panel.
+ * - Calls `startInspector()` or `stopInspector()` to control inspection lifecycle.
+ */
 function togglePanel() {
   if (iframe) {
     const isVisible = iframe.style.display === 'block';
@@ -144,7 +187,7 @@ function togglePanel() {
   startInspector(); // Start inspector when panel is first created
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'toggle_panel') {
     togglePanel();
     sendResponse({ status: 'done' });
