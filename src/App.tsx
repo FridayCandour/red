@@ -107,6 +107,25 @@ const EmptyState: FC<{title: string, message: string}> = ({ title, message }) =>
     </div>
 )
 
+/**
+ * Inspector panel React component that provides UI for inspecting page elements.
+ *
+ * Renders a fixed right-side panel with four tabs (Inspect, Colors, Fonts, Assets).
+ * - Inspect: toggle a live element inspector, display selected element details (general, size, typography, appearance).
+ * - Colors: show text and background color cards for the selected element.
+ * - Fonts, Assets: placeholders.
+ *
+ * Side effects:
+ * - Listens for window "message" events from the parent to receive an `element_selected` payload and update the pinned selection.
+ * - Posts messages to the parent to start/stop the inspector and to request closing the panel.
+ *
+ * Component state:
+ * - activeTab: currently selected tab.
+ * - selectedElement: pinned element details or null.
+ * - isInspecting: whether the live inspector is active.
+ *
+ * @returns The App panel as a React element.
+ */
 function App() {
   const [activeTab, setActiveTab] = useState('Inspect');
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
@@ -253,9 +272,6 @@ function App() {
     <div className="fixed top-0 right-0 h-screen w-[380px] bg-[#1e1e1e] text-white shadow-2xl flex flex-col z-[99999999] font-sans">
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-20 bg-black/20 flex flex-col items-center pt-5">
-          <div className="h-20 flex items-center justify-center" title="css crater">
-            <img src="/icon.png" alt="css crater logo" className="w-8 h-8" />
-          </div>
           <NavItem icon={<Icon>🔍</Icon>} label="Inspect" active={activeTab === 'Inspect'} onClick={() => setActiveTab('Inspect')} />
           <NavItem icon={<Icon>🎨</Icon>} label="Colors" active={activeTab === 'Colors'} onClick={() => setActiveTab('Colors')} />
           <NavItem icon={<Icon>✒️</Icon>} label="Fonts" active={activeTab === 'Fonts'} onClick={() => setActiveTab('Fonts')} />

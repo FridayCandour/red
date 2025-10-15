@@ -1,30 +1,45 @@
 {
   "manifest_version": 3,
-  "name": "Red Border Extension",
-  "version": "2.0",
-  "description": "An advanced inspector to highlight elements and view their properties.",
+  "name": "css crater",
+  "version": "1.0.0",
+  "description": "A world-class design inspector for professionals.",
   "icons": {
-    "128": "icon.svg"
+    "16": "favicon-16x16.png",
+    "32": "favicon-32x32.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
   "permissions": [
-    "storage",
-    "scripting",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
-  "action": {},
+  "action": {
+    "default_title": "Toggle css crater"
+  },
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "css": ["assets/global.css"],
       "js": ["src/content.js"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["index.html", "src/injected.js"],
+      "resources": [
+        "index.html",
+        "icon.png",
+        "favicon.ico",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "apple-touch-icon.png",
+        "android-chrome-192x192.png",
+        "android-chrome-512x512.png",
+        "assets/*",
+        "src/panel.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
