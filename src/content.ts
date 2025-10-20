@@ -109,11 +109,11 @@ function handleMouseOver(e: MouseEvent) {
 }
 
 /**
- * Handle mouse clicks while the inspector is active: collect the clicked element's metadata, send it to the panel, and stop the inspector.
+ * Handle clicks while the inspector is active: collect metadata about the clicked element, post it to the panel, and stop the inspector to pin the selection.
  *
- * Ignores clicks targeting the panel iframe or when the inspector is inactive. Prevents the default action and stops propagation for handled clicks. Gathers the element's tag, id, class list, rounded width/height, and key computed style properties (fontFamily, fontSize, fontWeight, color, backgroundColor), posts a message to the iframe with action `element_selected` and the collected payload, then stops the inspector to "pin" the selection.
+ * Ignores clicks when the inspector is inactive or when the click targets the panel iframe. For handled clicks, prevents the default action and stops propagation, gathers element metadata (tag, id, classes, rounded width/height, and computed font and color properties), posts a message with action `element_selected` and the collected payload to the panel iframe, then stops the inspector.
  *
- * @param e - The MouseEvent triggered by the user's click.
+ * @param e - The MouseEvent triggered by the click
  */
 function handleMouseClick(e: MouseEvent) {
   if (!isInspectorActive) return;
